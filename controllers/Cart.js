@@ -18,10 +18,22 @@ export const getCart = async(req,res,next)=>{
 
 export const addtoCart = async (req, res, next) => {
   try {
-    const { productId, quantity } = req.body;
+    let { productId, quantity } = req.body;
     const userId = req.user.id;
 
-    const product = await Product.findById(productId);
+    console.log("Received productId:", productId, "Type:", typeof productId);
+
+    let product;
+    
+    // ✅ Pehle check karo agar productId number hai
+    if (!isNaN(productId)) {
+      // Agar numeric ID hai to Product model mein find karo numeric id field se
+      product = await Product.findOne({ id: parseInt(productId) });
+    } else {
+      // Agar string/ObjectId hai to normal findById use karo
+      product = await Product.findById(productId);
+    }
+
     if (!product) {
       return res.status(404).json({
         success: false,
@@ -34,25 +46,30 @@ export const addtoCart = async (req, res, next) => {
       cart = new Cart({ user: userId, items: [] });
     }
 
-    const qty = parseInt(quantity); // ✅ ensure number
+    const qty = parseInt(quantity);
 
+    // ✅ Ab product._id use karo cart mein (MongoDB ObjectId)
     const existingItemIndex = cart.items.findIndex(
-      item => item.product.toString() === productId
+      item => item.product.toString() === product._id.toString()
     );
 
     if (existingItemIndex > -1) {
       cart.items[existingItemIndex].quantity += qty;
     } else {
-      cart.items.push({ product: productId, quantity: qty });
+      cart.items.push({ product: product._id, quantity: qty });
     }
 
     await cart.save();
+    
+    // ✅ Cart ko populate karke bhejo response mein
+    await cart.populate("items.product");
+    
     res.status(200).json({ success: true, message: 'Item added to cart', cart });
   } catch (error) {
+    console.error("Add to cart error:", error);
     next(error);
   }
 }
-
 
 export const removeFromCart = async(req,res,next)=>{
     try {
