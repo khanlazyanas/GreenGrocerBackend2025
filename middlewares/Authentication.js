@@ -1,24 +1,17 @@
-import jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken"
 
-export const authmiddleware = (req, res, next) => {
-  try {
-    // sirf cookie me token check karenge
-    const token = req.cookies.token;
 
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "Login first",
-      });
-    }
+export const requireAuth = (req,res,next)=>{
+   try {
+      const token = req.cookies.token;
+      if(!token){
+         return res.status(401).json({success:false,message:"Login first"})
+      } 
+      const decoded = jwt.verify(token,process.env.JWT_SECRET);
+      req.userId = decoded._id;
+      next()
+   } catch (error) {
+      res.status(401).json({success:false,message:"Invalid token", error:error.message})
+   }
+} 
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded._id;   // ✅ userId ko request me attach kar diya
-    next();
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid token",
-    });
-  }
-};
