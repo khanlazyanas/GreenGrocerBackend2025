@@ -88,7 +88,12 @@ export const removeFromCart = async (req, res, next) => {
       return res.status(404).json({ success: false, message: "Cart not found" });
     }
 
-    cart.items = cart.items.filter(item => item.productId !== productId);
+    // Item remove karo
+    cart.items = cart.items.filter(item => String(item.productId) !== String(productId));
+
+    // Total dobara calculate karo
+    cart.total = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
     await cart.save();
 
     res.status(200).json({
