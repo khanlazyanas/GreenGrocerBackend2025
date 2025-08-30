@@ -55,7 +55,11 @@ export const updateCartItemQuantity = async (req, res, next) => {
       return res.status(404).json({ success: false, message: "Cart not found" });
     }
 
-    const itemIndex = cart.items.findIndex(item => item.productId === productId);
+    // const itemIndex = cart.items.findIndex(item => item.productId === productId);
+    const itemIndex = cart.items.findIndex(
+      item => String(item.productId) === String(productId)
+    );
+
 
     if (itemIndex === -1) {
       return res.status(404).json({ success: false, message: "Product not found in cart" });
