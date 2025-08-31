@@ -31,7 +31,7 @@ export const createPaymentOrder = async (req, res) => {
 
     // Payment record with status Pending
     await Payment.create({
-      user: req.user.id,
+      user: req.userId,
       order: orderId,
       amount,
       paymentDetail: {
@@ -185,7 +185,7 @@ export const codOrder = async (req, res) => {
     }
 
     const newOrder = await Order.create({
-      user: req.user.id,      
+      user: req.userId,      
       items,
       totalamount: total,      
       address,
