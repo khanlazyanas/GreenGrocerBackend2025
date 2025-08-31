@@ -15,24 +15,38 @@ const razorpay = new Razorpay({
 // ✅ 1. Create Razorpay Order
 export const createPaymentOrder = async (req, res) => {
   try {
-    const { amount, orderId } = req.body;
+    const { amount, items, address, name, email, phoneNumber } = req.body;
 
-    if (!amount || !orderId) {
+    if (!amount || !items || !address || !name || !phoneNumber) {
       return res
         .status(400)
-        .json({ success: false, message: "Amount & OrderId required" });
+        .json({ success: false, message: "Missing required fields" });
     }
 
+    // 1️⃣ Create Order first
+    const newOrder = await Order.create({
+      user: req.userId,
+      items,
+      totalamount: amount,
+      address,
+      name,
+      email,
+      phoneNumber,
+      paymentMethod: "Online",
+      status: "Pending",
+    });
+
+    // 2️⃣ Create Razorpay order
     const razorpayOrder = await razorpay.orders.create({
       amount: amount * 100, // paise me
       currency: "INR",
-      receipt: `receipt_${Date.now()}`,
+      receipt: `receipt_${newOrder._id}`,
     });
 
-    // Payment record with status Pending
+    // 3️⃣ Create Payment record
     await Payment.create({
       user: req.userId,
-      order: orderId,
+      order: newOrder._id, // ✅ MongoDB ObjectId
       amount,
       paymentDetail: {
         razorpay_order_id: razorpayOrder.id,
@@ -45,6 +59,7 @@ export const createPaymentOrder = async (req, res) => {
       success: true,
       key: process.env.RAZORPAY_KEY_ID,
       order: razorpayOrder,
+      orderDbId: newOrder._id, // frontend me zarurat ho to bhej sakte ho
     });
   } catch (err) {
     console.error("Create Razorpay Order Error:", err);
