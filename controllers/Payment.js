@@ -17,13 +17,7 @@ export const createPaymentOrder = async (req, res) => {
   try {
     const { amount, items, address, name, email, phoneNumber } = req.body;
 
-    if (!amount || !items || !address || !name || !phoneNumber) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing required fields" });
-    }
-
-    // 1️⃣ Create Order first
+    // Step 1: create Order first
     const newOrder = await Order.create({
       user: req.userId,
       items,
@@ -36,17 +30,17 @@ export const createPaymentOrder = async (req, res) => {
       status: "Pending",
     });
 
-    // 2️⃣ Create Razorpay order
+    // Step 2: create Razorpay order
     const razorpayOrder = await razorpay.orders.create({
       amount: amount * 100, // paise me
       currency: "INR",
       receipt: `receipt_${newOrder._id}`,
     });
 
-    // 3️⃣ Create Payment record
+    // Step 3: create Payment record
     await Payment.create({
       user: req.userId,
-      order: newOrder._id, // ✅ MongoDB ObjectId
+      order: newOrder._id,
       amount,
       paymentDetail: {
         razorpay_order_id: razorpayOrder.id,
@@ -58,16 +52,16 @@ export const createPaymentOrder = async (req, res) => {
     res.status(200).json({
       success: true,
       key: process.env.RAZORPAY_KEY_ID,
-      order: razorpayOrder,
-      orderDbId: newOrder._id, // frontend me zarurat ho to bhej sakte ho
+      order: {
+        razorpayOrderId: razorpayOrder.id,
+        amount,
+        currency: "INR",
+        backendOrderId: newOrder._id,
+      },
     });
   } catch (err) {
-    console.error("Create Razorpay Order Error:", err);
-    res.status(500).json({
-      success: false,
-      message: "Razorpay Order Failed",
-      error: err.message,
-    });
+    console.error(err);
+    res.status(500).json({ success: false, message: "Razorpay Order Failed", error: err.message });
   }
 };
 
