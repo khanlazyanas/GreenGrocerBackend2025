@@ -50,14 +50,16 @@ export const placeorder = async (req, res, next) => {
 
 export const getMyOrders = async (req, res, next) => {
   try {
-    const order = await Order.find({ user: req.user.id }).populate("items.product");
+    const order = await Order.find({ user: req.userId }).populate("items.product");
     res.status(200).json({
       success: true,
       order,
     });
   } catch (error) {
-    next(error);
+    console.error("GetMyOrders Error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 
