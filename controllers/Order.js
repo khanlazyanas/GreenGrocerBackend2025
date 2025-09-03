@@ -2,24 +2,36 @@ import {  Order } from "../models/Order.js";
 import { Cart } from "../models/Cart.js";
 
 
+import mongoose from "mongoose";
+import { Order } from "../models/Order.js";
+import { Cart } from "../models/Cart.js";
+
 export const placeorder = async (req, res, next) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.id;
     const { address, paymentMethod, name, email, phoneNumber } = req.body;
 
     const cart = await Cart.findOne({ userId });
     if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ success: false, message: "Cart is empty" });
+      return res.status(400).json({
+        success: false,
+        message: "Cart is empty",
+      });
     }
 
-    const orderItems = cart.items.map(item => ({
-  product: item.productId, // ✅ ObjectId reference
-  quantity: item.quantity,
-}));
+    // 🟢 Convert cart.items -> order.items
+    const orderItems = cart.items.map((item) => ({
+      product: new mongoose.Types.ObjectId(item.productId), // ✅ ObjectId me convert
+      quantity: item.quantity,
+    }));
+
     const order = await Order.create({
       user: userId,
       items: orderItems,
-      totalamount: cart.items.reduce((total, item) => total + item.quantity * item.price, 0),
+      totalamount: cart.items.reduce(
+        (total, item) => total + item.price * item.quantity,
+        0
+      ),
       address,
       paymentMethod,
       name,
@@ -28,17 +40,19 @@ export const placeorder = async (req, res, next) => {
       status: "Pending",
     });
 
+    // Empty the cart
     cart.items = [];
     await cart.save();
 
-    res.status(201).json({ success: true, message: "Order Placed", order });
+    res.status(201).json({
+      success: true,
+      message: "Order Placed",
+      order,
+    });
   } catch (error) {
     next(error);
   }
 };
-
-
-
 
 export const getMyOrders = async (req, res, next) => {
   try {
