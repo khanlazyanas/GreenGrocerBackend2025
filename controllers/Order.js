@@ -7,28 +7,24 @@ export const placeorder = async (req, res, next) => {
     const userId = req.user.id;
     const { address, paymentMethod, name, email, phoneNumber } = req.body;
 
-    const cart = await Cart.findOne({ user: userId }).populate("items.product");
-    if (!cart || cart.items.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Cart is empty",
-      });
-    }
-
     const order = await Order.create({
-      user: userId,
-      items: cart.items,
-      totalamount: cart.items.reduce(
-        (total, item) => total + item.product.price * item.quantity,
-        0
-      ),
-      address,
-      paymentMethod,
-      name,
-      email,
-      phoneNumber,
-      status: "Pending",
-    });
+  user: userId,
+  items: cart.items.map(item => ({
+    product: item.product._id,   // 👈 yeh add karo
+    quantity: item.quantity,
+  })),
+  totalamount: cart.items.reduce(
+    (total, item) => total + item.product.price * item.quantity,
+    0
+  ),
+  address,
+  paymentMethod,
+  name,
+  email,
+  phoneNumber,
+  status: "Pending",
+});
+
 
     // Empty the cart after placing order
     cart.items = [];
