@@ -1,11 +1,10 @@
-
 import mongoose from "mongoose";
 import { Order } from "../models/Order.js";
 import { Cart } from "../models/Cart.js";
 
 export const placeorder = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.userId; // ✅ fixed
     const { address, paymentMethod, name, email, phoneNumber } = req.body;
 
     const cart = await Cart.findOne({ userId });
@@ -18,7 +17,7 @@ export const placeorder = async (req, res, next) => {
 
     // 🟢 Convert cart.items -> order.items
     const orderItems = cart.items.map((item) => ({
-      product: new mongoose.Types.ObjectId(item.productId), // ✅ ObjectId me convert
+      product: new mongoose.Types.ObjectId(item.productId), // ✅ convert string → ObjectId
       quantity: item.quantity,
     }));
 
@@ -37,7 +36,7 @@ export const placeorder = async (req, res, next) => {
       status: "Pending",
     });
 
-    // Empty the cart
+    // 🟢 Empty the cart
     cart.items = [];
     await cart.save();
 
@@ -53,7 +52,8 @@ export const placeorder = async (req, res, next) => {
 
 export const getMyOrders = async (req, res, next) => {
   try {
-    const order = await Order.find({ user: req.userId }).populate("items.product","name price image");
+    const order = await Order.find({ user: req.userId })
+      .populate("items.product", "name price image"); // ✅ populate hoga
     res.status(200).json({
       success: true,
       order,
@@ -63,6 +63,3 @@ export const getMyOrders = async (req, res, next) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
-
-
