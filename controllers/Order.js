@@ -13,10 +13,9 @@ export const placeorder = async (req, res, next) => {
     }
 
     const orderItems = cart.items.map(item => ({
-      product: item.product,   // ✅ ObjectId reference saved
-      quantity: item.quantity,
-    }));
-
+  product: item.productId, // ✅ ObjectId reference
+  quantity: item.quantity,
+}));
     const order = await Order.create({
       user: userId,
       items: orderItems,
