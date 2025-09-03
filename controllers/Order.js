@@ -50,7 +50,7 @@ export const placeorder = async (req, res, next) => {
 
 export const getMyOrders = async (req, res, next) => {
   try {
-    const order = await Order.find({ user: req.userId }).populate("items.product");
+    const order = await Order.find({ user: req.userId }).populate("items.product","name price image");
     res.status(200).json({
       success: true,
       order,
