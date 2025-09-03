@@ -7,24 +7,34 @@ export const placeorder = async (req, res, next) => {
     const userId = req.user.id;
     const { address, paymentMethod, name, email, phoneNumber } = req.body;
 
-    const order = await Order.create({
-  user: userId,
-  items: cart.items.map(item => ({
-    product: item.product._id,   // 👈 yeh add karo
-    quantity: item.quantity,
-  })),
-  totalamount: cart.items.reduce(
-    (total, item) => total + item.product.price * item.quantity,
-    0
-  ),
-  address,
-  paymentMethod,
-  name,
-  email,
-  phoneNumber,
-  status: "Pending",
-});
+    const cart = await Cart.findOne({ userId });
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Cart is empty",
+      });
+    }
 
+    // Map cart items to match Order schema
+    const orderItems = cart.items.map(item => ({
+      product: item.productId, // ✅ use ObjectId of product
+      quantity: item.quantity,
+    }));
+
+    const order = await Order.create({
+      user: userId,
+      items: orderItems,
+      totalamount: cart.items.reduce(
+        (total, item) => total + item.price * item.quantity,
+        0
+      ),
+      address,
+      paymentMethod,
+      name,
+      email,
+      phoneNumber,
+      status: "Pending",
+    });
 
     // Empty the cart after placing order
     cart.items = [];
@@ -39,7 +49,6 @@ export const placeorder = async (req, res, next) => {
     next(error);
   }
 };
-
 
 
 
