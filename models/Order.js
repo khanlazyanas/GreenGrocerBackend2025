@@ -1,3 +1,4 @@
+// models/Order.js
 import mongoose from "mongoose";
 
 const OrderSchema = new mongoose.Schema({
@@ -9,10 +10,9 @@ const OrderSchema = new mongoose.Schema({
 
   items: [
     {
-      product: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-      },
+      name: String,   // ✅ direct product name
+      price: Number,  // ✅ direct product price
+      image: String,  // ✅ direct product image
       quantity: {
         type: Number,
         default: 1,
@@ -30,24 +30,10 @@ const OrderSchema = new mongoose.Schema({
     required: true,
   },
 
-  // ✅ extra fields for COD orders
-  name: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-  },
-  phoneNumber: {
-    type: String,
-    required: true,
-  },
-
-  paymentMethod: {
-    type: String,
-    required: true,
-  },
+  name: String,
+  email: String,
+  phoneNumber: String,
+  paymentMethod: String,
 
   status: {
     type: String,
