@@ -16,6 +16,7 @@ export const requireAuth = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = decoded._id;
+    req.userRole = decoded.role; 
     next();
   } catch (error) {
     res.status(401).json({ success: false, message: "Invalid token", error: error.message });
