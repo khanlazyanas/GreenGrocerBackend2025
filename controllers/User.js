@@ -15,7 +15,7 @@ export const Register = async(req,res)=>{
 
     const hassedpassword = await bcrypt.hash(password,10)
 
-    const user = await User.create({name,email,password:hassedpassword,role: role || "user"})
+    const user = await User.create({name,email,password:hassedpassword,role: role || "usergi"})
     sendCookie(user,res, `Register successfully`)
    } catch (error) {
     res.status(500).json({message:"Server error"})
