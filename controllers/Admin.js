@@ -10,16 +10,22 @@ export const getAllUser = async (req, res, next) => {
   }
 };
 
+
+
 export const getAllOrders = async (req, res, next) => {
   try {
     const orders = await Order.find()
-      .populate("user", "name email role")
-      .populate("items.product", "name price");
+      .populate("user", "name email role"); 
     res.status(200).json({ success: true, orders });
   } catch (error) {
     next(error);
   }
 };
+
+
+
+
+
 
 export const getOrderByUserId = async (req, res, next) => {
   try {
