@@ -1,12 +1,12 @@
 import { Cart } from "../models/Cart.js";
 
-// 🛒 Get Cart
+//  Get Cart
 export const getCart = async (req, res) => {
   const cart = await Cart.findOne({ userId: req.userId });
   res.json(cart || { items: [] });
 };
 
-// 🛒 Add to Cart
+// Add to Cart
 export const addtoCart = async (req, res, next) => {
   try {
     const { productId, name, price, quantity, image } = req.body; // image add kiya
@@ -45,7 +45,7 @@ export const addtoCart = async (req, res, next) => {
 };
 
 
-// 🛒 Update Item Quantity
+//  Update Item Quantity
 export const updateCartItemQuantity = async (req, res, next) => {
   try {
     const { productId, quantity } = req.body;
