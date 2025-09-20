@@ -1,6 +1,7 @@
 import { Order } from "../models/Order.js";
 import { User } from "../models/User.js";
 
+/* ------------------ Users ------------------ */
 export const getAllUser = async (req, res, next) => {
   try {
     const users = await User.find().select("-password");
@@ -10,22 +11,16 @@ export const getAllUser = async (req, res, next) => {
   }
 };
 
-
-
+/* ------------------ Orders ------------------ */
 export const getAllOrders = async (req, res, next) => {
   try {
     const orders = await Order.find()
-      .populate("user", "name email role"); 
+      .populate("user", "name email role"); // populate basic user details
     res.status(200).json({ success: true, orders });
   } catch (error) {
     next(error);
   }
 };
-
-
-
-
-
 
 export const getOrderByUserId = async (req, res, next) => {
   try {
@@ -38,6 +33,7 @@ export const getOrderByUserId = async (req, res, next) => {
   }
 };
 
+/* ✅ Update Order Status */
 export const updateOrderStatus = async (req, res, next) => {
   try {
     const { orderId } = req.params;
@@ -59,7 +55,30 @@ export const updateOrderStatus = async (req, res, next) => {
       return res.status(404).json({ success: false, message: "Order Not found" });
     }
 
-    res.status(200).json({ success: true, message: "Order Status Updated", order });
+    res.status(200).json({
+      success: true,
+      message: "Order Status Updated",
+      order
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/* ✅ Delete Order */
+export const deleteOrder = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findByIdAndDelete(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Order deleted successfully"
+    });
   } catch (error) {
     next(error);
   }
